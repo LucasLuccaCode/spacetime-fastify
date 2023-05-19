@@ -3,8 +3,18 @@ import { prisma } from '../lib/prisma'
 import { z } from 'zod'
 
 export async function memoriesRoutes(app: FastifyInstance) {
+  app.addHook('preHandler', async (request) => {
+    await request.jwtVerify()
+  })
+
   app.get('/memories', async (request) => {
-    const memories = await prisma.memory.findMany({})
+    const id = request.user.sub
+
+    const memories = await prisma.memory.findMany({
+      where: {
+        userId: id,
+      },
+    })
 
     return memories.map((memory) => ({
       id: memory.id,
@@ -14,49 +24,52 @@ export async function memoriesRoutes(app: FastifyInstance) {
     }))
   })
 
-  app.post('/memories', async (request) => {
+  app.post('/memories', async (request, reply) => {
     const bodySchema = z.object({
-      userId: z.coerce.string().uuid(),
       content: z.string(),
       isPublic: z.coerce.boolean().default(false),
       coverUrl: z.string(),
     })
-    const { userId, content, isPublic, coverUrl } = bodySchema.parse(
-      request.body,
-    )
+    const { content, isPublic, coverUrl } = bodySchema.parse(request.body)
 
     const memory = await prisma.memory.create({
       data: {
-        userId,
+        userId: request.user.sub,
         content,
         isPublic,
         coverUrl,
       },
     })
 
-    return memory
+    return reply.code(201).send(memory)
   })
 
-  app.get('/memories/:id', async (request) => {
+  app.get('/memories/:id', async (request, reply) => {
     const paramsSchema = z.object({
       id: z.coerce.string().uuid(),
     })
     const { id } = paramsSchema.parse(request.params)
 
-    const memory = await prisma.memory.findUnique({
+    const memory = await prisma.memory.findUniqueOrThrow({
       where: {
         id,
       },
     })
 
-    if (!memory) {
-      throw new Error('Memória não encontrada.')
+    console.log({
+      memory: memory.userId,
+      request: request.user.sub,
+    })
+    if (!memory.isPublic && memory.userId !== request.user.sub) {
+      return reply.code(401).send({
+        message: 'Você não possui autorização para consultar essa memoria.',
+      })
     }
 
     return memory
   })
 
-  app.put('/memories/:id', async (request) => {
+  app.put('/memories/:id', async (request, reply) => {
     const paramsSchema = z.object({
       id: z.coerce.string().uuid(),
     })
@@ -69,14 +82,16 @@ export async function memoriesRoutes(app: FastifyInstance) {
     })
     const { content, isPublic, coverUrl } = bodySchema.parse(request.body)
 
-    const existingMemory = await prisma.memory.findUnique({
+    const existingMemory = await prisma.memory.findUniqueOrThrow({
       where: {
         id,
       },
     })
 
-    if (!existingMemory) {
-      throw new Error('Memória não encontrada.')
+    if (existingMemory.userId !== request.user.sub) {
+      return reply.code(401).send({
+        message: 'Você não possui autorização para atualizar essa memoria.',
+      })
     }
 
     const memory = await prisma.memory.update({
@@ -93,11 +108,23 @@ export async function memoriesRoutes(app: FastifyInstance) {
     return memory
   })
 
-  app.delete('/memories/:id', async (request) => {
+  app.delete('/memories/:id', async (request, reply) => {
     const paramsSchema = z.object({
       id: z.coerce.string().uuid(),
     })
     const { id } = paramsSchema.parse(request.params)
+
+    const memory = await prisma.memory.findUniqueOrThrow({
+      where: {
+        id,
+      },
+    })
+
+    if (memory.userId !== request.user.sub) {
+      return reply.code(401).send({
+        message: 'Você não possui autorização para deletar essa memoria.',
+      })
+    }
 
     await prisma.memory.delete({
       where: {
