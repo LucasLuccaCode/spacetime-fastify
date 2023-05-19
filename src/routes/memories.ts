@@ -36,4 +36,23 @@ export async function memoriesRoutes(app: FastifyInstance) {
 
     return memory
   })
+
+  app.get('/memories/:id', async (request) => {
+    const paramsSchema = z.object({
+      id: z.coerce.string().uuid(),
+    })
+    const { id } = paramsSchema.parse(request.params)
+
+    const memory = await prisma.memory.findUnique({
+      where: {
+        id,
+      },
+    })
+
+    if (!memory) {
+      throw new Error('Memória não encontrada.')
+    }
+
+    return memory
+  })
 }
