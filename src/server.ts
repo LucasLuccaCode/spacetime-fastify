@@ -11,6 +11,6 @@ app.register(memoriesRoutes)
 
 app
   .listen({
-    port: 3000,
+    port: 3333,
   })
-  .then(() => console.log(`🚀 Server running on http://localhost:3000`))
+  .then(() => console.log(`🚀 Server running on http://localhost:3333`))
