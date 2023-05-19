@@ -55,4 +55,45 @@ export async function memoriesRoutes(app: FastifyInstance) {
 
     return memory
   })
+
+  app.put('/memories/:id', async (request) => {
+    const paramsSchema = z.object({
+      id: z.coerce.string().uuid(),
+    })
+    const { id } = paramsSchema.parse(request.params)
+
+    const bodySchema = z.object({
+      userId: z.coerce.string().uuid(),
+      content: z.string(),
+      isPublic: z.coerce.boolean(),
+      coverUrl: z.string(),
+    })
+    const { userId, content, isPublic, coverUrl } = bodySchema.parse(
+      request.body,
+    )
+
+    const existingMemory = await prisma.memory.findUnique({
+      where: {
+        id,
+      },
+    })
+
+    if (!existingMemory) {
+      throw new Error('Memória não encontrada.')
+    }
+
+    const memory = await prisma.memory.update({
+      where: {
+        id,
+      },
+      data: {
+        userId,
+        content,
+        isPublic,
+        coverUrl,
+      },
+    })
+
+    return memory
+  })
 }
