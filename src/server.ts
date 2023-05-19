@@ -1,10 +1,9 @@
 import fastify from 'fastify'
+import { memoriesRoutes } from './routes/memories'
 
 const app = fastify()
 
-app.get('/users', async (request) => {
-  return console.log('NLW Spacetime')
-})
+app.register(memoriesRoutes)
 
 app
   .listen({

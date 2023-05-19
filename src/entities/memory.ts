@@ -1,8 +1,8 @@
 export interface IMemory {
-  coverUrl: string
+  userId: string
   content: string
   isPublic: boolean
-  userId: string
+  coverUrl: string
 }
 
 export interface IMemoryModel extends IMemory {
