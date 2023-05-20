@@ -8,6 +8,8 @@ import multipart from '@fastify/multipart'
 import { memoriesRoutes } from './routes/memories'
 import { uploadRoutes } from './routes/upload'
 import { authRoutes } from './routes/auth'
+import fastifyStatic from '@fastify/static'
+import { resolve } from 'path'
 
 const app = fastify()
 
@@ -16,6 +18,11 @@ app.register(cors, {
 })
 
 app.register(multipart)
+
+app.register(fastifyStatic, {
+  root: resolve(__dirname, '..', 'uploads'),
+  prefix: '/uploads',
+})
 
 app.register(jwt, {
   secret: process.env.JWT_SECRET || 'spacetime',
