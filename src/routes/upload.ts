@@ -2,7 +2,7 @@ import { promisify } from 'node:util'
 import { pipeline } from 'node:stream'
 import { randomUUID } from 'node:crypto'
 import { extname, resolve } from 'node:path'
-import { createWriteStream } from 'node:fs'
+import { createWriteStream, existsSync, mkdirSync } from 'node:fs'
 import { FastifyInstance } from 'fastify'
 
 const pump = promisify(pipeline)
@@ -17,6 +17,12 @@ export async function uploadRoutes(app: FastifyInstance) {
 
     if (!upload) {
       return reply.status(400).send({ message: 'Nenhum arquivo enviado.' })
+    }
+
+    // Verifica se o diretório existe
+    const uploadPath = resolve(__dirname, '..', '..', 'uploads')
+    if (!existsSync(uploadPath)) {
+      mkdirSync(uploadPath)
     }
 
     const mimeTypeRegex = /^(image|video)\/[a-zA-z]+/
