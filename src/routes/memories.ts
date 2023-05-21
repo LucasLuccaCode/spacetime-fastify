@@ -1,6 +1,8 @@
 import { FastifyInstance } from 'fastify'
 import { prisma } from '../lib/prisma'
 import { z } from 'zod'
+import { resolve, sep } from 'node:path'
+import { unlink } from 'node:fs'
 
 export async function memoriesRoutes(app: FastifyInstance) {
   app.addHook('preHandler', async (request) => {
@@ -126,10 +128,21 @@ export async function memoriesRoutes(app: FastifyInstance) {
       })
     }
 
+    if (memory.coverUrl) {
+      const filename = memory.coverUrl.split(sep).pop() as string
+      const coverPath = resolve(__dirname, '..', '..', 'uploads', filename)
+
+      unlink(coverPath, (err) => {
+        if (err) console.log(err)
+      })
+    }
+
     await prisma.memory.delete({
       where: {
         id,
       },
     })
+
+    return reply.status(200).send({ message: 'Memória deletada.' })
   })
 }
