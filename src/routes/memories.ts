@@ -16,6 +16,9 @@ export async function memoriesRoutes(app: FastifyInstance) {
       where: {
         userId: id,
       },
+      orderBy: {
+        createdAt: 'desc',
+      },
     })
 
     return memories.map((memory) => ({
