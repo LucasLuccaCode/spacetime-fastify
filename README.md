@@ -72,6 +72,7 @@ npm run dev
 - Fastify Multipart
 - Fastify JWT
 - Eslint
+- Dayjs
 - Dotenv
 - Zod
 - Axios

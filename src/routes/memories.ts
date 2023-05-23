@@ -1,8 +1,9 @@
 import { FastifyInstance } from 'fastify'
-import { prisma } from '../lib/prisma'
 import { z } from 'zod'
 import { resolve, sep } from 'node:path'
 import { unlink } from 'node:fs'
+
+import { prisma } from '../lib/prisma'
 
 export async function memoriesRoutes(app: FastifyInstance) {
   app.addHook('preHandler', async (request) => {
@@ -61,10 +62,6 @@ export async function memoriesRoutes(app: FastifyInstance) {
       },
     })
 
-    console.log({
-      memory: memory.userId,
-      request: request.user.sub,
-    })
     if (!memory.isPublic && memory.userId !== request.user.sub) {
       return reply.code(401).send({
         message: 'Você não possui autorização para consultar essa memoria.',

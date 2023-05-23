@@ -2,8 +2,8 @@ import { promisify } from 'node:util'
 import { pipeline } from 'node:stream'
 import { randomUUID } from 'node:crypto'
 import { extname, resolve } from 'node:path'
-import { createWriteStream, existsSync, mkdirSync } from 'node:fs'
 import { FastifyInstance } from 'fastify'
+import { createWriteStream, existsSync, mkdirSync } from 'node:fs'
 
 const pump = promisify(pipeline)
 
